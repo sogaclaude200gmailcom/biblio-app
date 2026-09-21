@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}Catalogue — Bibliothèque en ligne{% endblock %}
+{% block content %}
+    <h2>Catalogue des livres</h2>
+    <div class="book-grid">
+        {% for book in books %}
+            <div class="book-card">
+                <h3>{{ book.title }}</h3>
+                <p class="author">{{ book.author }}</p>
+                <p class="isbn">ISBN : {{ book.isbn }}</p>
+                <p class="availability">
+                    {% if book.available_copies > 0 %}
+                        {{ book.available_copies }} / {{ book.total_copies }} disponible(s)
+                    {% else %}
+                        <span class="unavailable">Aucun exemplaire disponible</span>
+                    {% endif %}
+                </p>
+                {% if session.get('user_id') and book.available_copies > 0 %}
+                    <form method="POST" action="{{ url_for('borrow', book_id=book.id) }}">
+                        <button type="submit">Emprunter</button>
+                    </form>
+                {% elif not session.get('user_id') %}
+                    <a href="{{ url_for('login') }}">Connectez-vous pour emprunter</a>
+                {% endif %}
+            </div>
+        {% endfor %}
+    </div>
+{% endblock %}

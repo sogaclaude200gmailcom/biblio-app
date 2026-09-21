@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Mes emprunts{% endblock %}
+{% block content %}
+    <h2>Mes emprunts</h2>
+    {% if loans %}
+        <table>
+            <thead>
+                <tr><th>Livre</th><th>Auteur</th><th>Date d'emprunt</th><th>Statut</th><th></th></tr>
+            </thead>
+            <tbody>
+                {% for loan in loans %}
+                    <tr>
+                        <td>{{ loan.title }}</td>
+                        <td>{{ loan.author }}</td>
+                        <td>{{ loan.loan_date.strftime('%d/%m/%Y') }}</td>
+                        <td>{{ 'En cours' if loan.status == 'en_cours' else 'Rendu' }}</td>
+                        <td>
+                            {% if loan.status == 'en_cours' %}
+                                <form method="POST" action="{{ url_for('return_book', loan_id=loan.id) }}">
+                                    <button type="submit">Rendre</button>
+                                </form>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>Vous n'avez encore emprunté aucun livre.</p>
+    {% endif %}
+{% endblock %}
