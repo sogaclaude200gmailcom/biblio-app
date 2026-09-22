@@ -1,0 +1,53 @@
+# Configuration dynamique Traefik — définit, pour chaque microservice,
+# une route chiffrée (TLS) qui relaie vers son port HTTP interne.
+# C'est ce détour par Traefik qui chiffre les communications
+# inter-services (objectif 3.2 du cahier de charges).
+
+http:
+  routers:
+    webui-router:
+      rule: "PathPrefix(`/`)"
+      entryPoints:
+        - websecure
+      service: webui-service
+      tls: {}
+
+    auth-router:
+      rule: "PathPrefix(`/`)"
+      entryPoints:
+        - auth-secure
+      service: auth-service
+      tls: {}
+
+    catalogue-router:
+      rule: "PathPrefix(`/`)"
+      entryPoints:
+        - catalogue-secure
+      service: catalogue-service
+      tls: {}
+
+  services:
+    webui-service:
+      loadBalancer:
+        servers:
+          - url: "http://webui-service:5003"
+
+    auth-service:
+      loadBalancer:
+        servers:
+          - url: "http://auth-service:5001"
+
+    catalogue-service:
+      loadBalancer:
+        servers:
+          - url: "http://catalogue-service:5002"
+
+tls:
+  certificates:
+    - certFile: /etc/traefik/certs/server.crt
+      keyFile: /etc/traefik/certs/server.key
+  stores:
+    default:
+      defaultCertificate:
+        certFile: /etc/traefik/certs/server.crt
+        keyFile: /etc/traefik/certs/server.key

@@ -1,0 +1,54 @@
+version: "3.8"
+
+# Ce fichier s'AJOUTE à docker-compose.yml (il ne le remplace pas).
+# Il introduit Traefik comme relais chiffré entre les services, et bascule
+# les URLs d'appel de HTTP vers HTTPS à travers lui.
+#
+# Usage :
+#   docker compose -f docker-compose.yml -f docker-compose.tls.yml up -d --build
+#
+# Comparer avec/sans chiffrement revient simplement à relancer avec ou
+# sans ce second fichier — le code des services ne change pas.
+
+services:
+  traefik:
+    image: traefik:v3.1
+    command:
+      - "--providers.file.directory=/etc/traefik/dynamic"
+      - "--providers.file.watch=true"
+      - "--entryPoints.websecure.address=:443"
+      - "--entryPoints.auth-secure.address=:5011"
+      - "--entryPoints.catalogue-secure.address=:5012"
+      - "--api.dashboard=true"
+      - "--api.insecure=true"
+    ports:
+      - "8443:443"     # accès HTTPS à l'interface web via Traefik
+      - "5011:5011"    # (debug) accès direct à auth-service en HTTPS
+      - "5012:5012"    # (debug) accès direct à catalogue-service en HTTPS
+      - "8080:8080"    # tableau de bord Traefik
+    volumes:
+      - ./traefik/dynamic:/etc/traefik/dynamic:ro
+      - ./certs:/etc/traefik/certs:ro
+    depends_on:
+      - webui-service
+      - auth-service
+      - catalogue-service
+
+  catalogue-service:
+    environment:
+      AUTH_SERVICE_URL: https://traefik:5011
+      CA_CERT_PATH: /certs/ca.crt
+    volumes:
+      - ./certs/ca.crt:/certs/ca.crt:ro
+    depends_on:
+      - traefik
+
+  webui-service:
+    environment:
+      AUTH_SERVICE_URL: https://traefik:5011
+      CATALOGUE_SERVICE_URL: https://traefik:5012
+      CA_CERT_PATH: /certs/ca.crt
+    volumes:
+      - ./certs/ca.crt:/certs/ca.crt:ro
+    depends_on:
+      - traefik

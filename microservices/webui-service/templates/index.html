@@ -22,11 +22,11 @@
                 {% else %}
                     <span class="availability out-of-stock">Aucun exemplaire disponible</span>
                 {% endif %}
-                {% if session.get('user_id') and book.available_copies > 0 %}
+                {% if session.get('token') and book.available_copies > 0 %}
                     <form method="POST" action="{{ url_for('borrow', book_id=book.id) }}">
                         <button type="submit">Emprunter</button>
                     </form>
-                {% elif not session.get('user_id') and book.available_copies > 0 %}
+                {% elif not session.get('token') and book.available_copies > 0 %}
                     <a href="{{ url_for('login') }}" class="btn">Se connecter pour emprunter</a>
                 {% endif %}
             </div>

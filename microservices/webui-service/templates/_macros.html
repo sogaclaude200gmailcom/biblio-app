@@ -1,0 +1,15 @@
+{% macro book_cover(book) %}
+{% set palette = ['#2E4034', '#7A3030', '#8A6A2F', '#3A4D63', '#5B4636'] %}
+{% set color = palette[book.id % palette|length] %}
+{% set initial = book.title[0]|upper %}
+<div class="cover-wrap">
+    <svg class="cover-art" viewBox="0 0 200 280" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Couverture de {{ book.title }}">
+        <rect width="200" height="280" fill="{{ color }}"/>
+        <rect x="14" y="14" width="172" height="252" fill="none" stroke="rgba(255,255,255,0.35)" stroke-width="1"/>
+        <text x="100" y="172" font-family="Fraunces, Georgia, serif" font-size="88" font-weight="600"
+              fill="rgba(255,255,255,0.92)" text-anchor="middle">{{ initial }}</text>
+        <line x1="197" y1="8" x2="197" y2="272" stroke="rgba(0,0,0,0.25)" stroke-width="2"/>
+        <line x1="192" y1="8" x2="192" y2="272" stroke="rgba(0,0,0,0.12)" stroke-width="1"/>
+    </svg>
+</div>
+{% endmacro %}

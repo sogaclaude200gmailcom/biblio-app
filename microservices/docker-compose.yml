@@ -1,0 +1,55 @@
+version: "3.8"
+
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: biblio_user
+      POSTGRES_PASSWORD: biblio_pass
+      POSTGRES_DB: bibliotheque
+    volumes:
+      - ../db/schema.sql:/docker-entrypoint-initdb.d/schema.sql
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U biblio_user"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  auth-service:
+    build: ./auth-service
+    environment:
+      DB_HOST: db
+      DB_NAME: bibliotheque
+      DB_USER: biblio_user
+      DB_PASSWORD: biblio_pass
+    depends_on:
+      db:
+        condition: service_healthy
+
+  catalogue-service:
+    build: ./catalogue-service
+    environment:
+      DB_HOST: db
+      DB_NAME: bibliotheque
+      DB_USER: biblio_user
+      DB_PASSWORD: biblio_pass
+      AUTH_SERVICE_URL: http://auth-service:5001
+    depends_on:
+      db:
+        condition: service_healthy
+      auth-service:
+        condition: service_started
+
+  webui-service:
+    build: ./webui-service
+    environment:
+      SECRET_KEY: change-moi-en-production
+      AUTH_SERVICE_URL: http://auth-service:5001
+      CATALOGUE_SERVICE_URL: http://catalogue-service:5002
+    ports:
+      - "8000:5003"
+    depends_on:
+      - auth-service
+      - catalogue-service
