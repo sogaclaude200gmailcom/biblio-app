@@ -16,6 +16,7 @@ CREATE TABLE IF NOT EXISTS books (
     title VARCHAR(200) NOT NULL,
     author VARCHAR(100) NOT NULL,
     isbn VARCHAR(20) UNIQUE,
+    description TEXT,
     total_copies INT DEFAULT 1,
     available_copies INT DEFAULT 1
 );
@@ -39,10 +40,20 @@ CREATE TABLE IF NOT EXISTS tokens (
 );
 
 -- Données d'exemple pour pouvoir tester immédiatement
-INSERT INTO books (title, author, isbn, total_copies, available_copies) VALUES
-('Le Petit Prince', 'Antoine de Saint-Exupéry', '9782070408504', 3, 3),
-('1984', 'George Orwell', '9782070368228', 2, 2),
-('Réseaux et Télécoms', 'Claude Servin', '9782100747657', 4, 4),
-('Sécurité Informatique - Principes et Méthodes', 'Solange Ghernaouti', '9782744077605', 2, 2),
-('Introduction à Docker et aux Conteneurs', 'Collectif', '9782409012345', 3, 3)
+INSERT INTO books (title, author, isbn, description, total_copies, available_copies) VALUES
+('Le Petit Prince', 'Antoine de Saint-Exupéry', '9782070408504',
+ 'Un aviateur en panne dans le désert du Sahara rencontre un étrange petit garçon venu d''une autre planète. À travers ses voyages d''astéroïde en astéroïde, le Petit Prince interroge avec une simplicité désarmante l''amitié, l''amour et le sens de la vie adulte.',
+ 3, 3),
+('1984', 'George Orwell', '9782070368228',
+ 'Dans un État totalitaire sous la surveillance permanente de Big Brother, Winston Smith travaille au ministère de la Vérité, où son métier consiste à réécrire l''histoire. Un classique de la dystopie sur le contrôle de l''information et la liberté de pensée.',
+ 2, 2),
+('Réseaux et Télécoms', 'Claude Servin', '9782100747657',
+ 'Un ouvrage de référence couvrant l''ensemble des concepts fondamentaux des réseaux informatiques et des télécommunications : architectures, protocoles, supports de transmission et évolutions technologiques récentes.',
+ 4, 4),
+('Sécurité Informatique - Principes et Méthodes', 'Solange Ghernaouti', '9782744077605',
+ 'Une présentation structurée des principes de la cybersécurité : gestion des risques, cryptographie, sécurité des réseaux et des systèmes, à destination des étudiants comme des professionnels.',
+ 2, 2),
+('Introduction à Docker et aux Conteneurs', 'Collectif', '9782409012345',
+ 'Un guide pratique pour comprendre la conteneurisation avec Docker : images, conteneurs, réseaux, volumes, et premiers pas vers une architecture de microservices.',
+ 3, 3)
 ON CONFLICT (isbn) DO NOTHING;

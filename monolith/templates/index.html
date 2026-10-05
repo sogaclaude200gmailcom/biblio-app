@@ -10,10 +10,31 @@
         </div>
     </div>
 
-    <h2>Catalogue</h2>
-    <div class="book-grid">
+    {% if featured %}
+    <section class="spotlight reveal">
+        <span class="spotlight-badge">✦ Coup de cœur</span>
+        <div class="spotlight-body">
+            <div class="spotlight-cover">{{ book_cover(featured) }}</div>
+            <div class="spotlight-text">
+                <h3><a href="{{ url_for('book_detail', book_id=featured.id) }}">{{ featured.title }}</a></h3>
+                <p class="author">{{ featured.author }}</p>
+                <p class="spotlight-desc">{{ (featured.description or "")|truncate(140) }}</p>
+                <a href="{{ url_for('book_detail', book_id=featured.id) }}" class="btn">Découvrir</a>
+            </div>
+        </div>
+    </section>
+    {% endif %}
+
+    <div class="catalogue-head">
+        <h2>Catalogue</h2>
+        <input type="search" id="book-search" class="search-input" placeholder="Rechercher un titre ou un auteur…" aria-label="Rechercher un livre">
+    </div>
+
+    <div class="book-grid" id="book-grid">
         {% for book in books %}
-            <div class="book-card">
+            <a class="book-card reveal" style="animation-delay: {{ loop.index0 * 0.06 }}s"
+               href="{{ url_for('book_detail', book_id=book.id) }}"
+               data-search="{{ (book.title ~ ' ' ~ book.author)|lower }}">
                 {{ book_cover(book) }}
                 <h3>{{ book.title }}</h3>
                 <p class="author">{{ book.author }}</p>
@@ -22,14 +43,8 @@
                 {% else %}
                     <span class="availability out-of-stock">Aucun exemplaire disponible</span>
                 {% endif %}
-                {% if session.get('user_id') and book.available_copies > 0 %}
-                    <form method="POST" action="{{ url_for('borrow', book_id=book.id) }}">
-                        <button type="submit">Emprunter</button>
-                    </form>
-                {% elif not session.get('user_id') and book.available_copies > 0 %}
-                    <a href="{{ url_for('login') }}" class="btn">Se connecter pour emprunter</a>
-                {% endif %}
-            </div>
+            </a>
         {% endfor %}
     </div>
+    <p id="no-results" class="ink-soft" hidden>Aucun livre ne correspond à votre recherche.</p>
 {% endblock %}

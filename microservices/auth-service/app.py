@@ -119,6 +119,33 @@ def verify():
     return jsonify({"valid": True, "user_id": row["user_id"], "username": row["username"]})
 
 
+@app.route("/me", methods=["GET"])
+def me():
+    """Profil de l'utilisateur connecté, pour la page 'Mon profil'."""
+    token = request.headers.get("Authorization", "").replace("Bearer ", "")
+    if not token:
+        return jsonify({"error": "token manquant"}), 400
+
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute(
+        """
+        SELECT u.id AS user_id, u.username, u.email,
+               TO_CHAR(u.created_at, 'DD/MM/YYYY') AS member_since
+        FROM tokens t JOIN users u ON t.user_id = u.id
+        WHERE t.token = %s
+        """,
+        (token,),
+    )
+    row = cur.fetchone()
+    cur.close()
+    conn.close()
+
+    if not row:
+        return jsonify({"error": "Authentification requise."}), 401
+    return jsonify(row)
+
+
 @app.route("/logout", methods=["POST"])
 def logout():
     data = request.get_json(force=True)

@@ -11,6 +11,7 @@ Ports : 5003 (exposé publiquement, seul point d'entrée du navigateur)
 """
 
 import os
+import random
 import requests
 from flask import Flask, render_template, request, redirect, url_for, session, flash
 
@@ -36,7 +37,43 @@ def index():
     except requests.RequestException:
         flash("Le service catalogue est indisponible pour le moment.")
         books = []
-    return render_template("index.html", books=books)
+    featured = random.choice(books) if books else None
+    return render_template("index.html", books=books, featured=featured)
+
+
+@app.route("/livre/<int:book_id>")
+def book_detail(book_id):
+    try:
+        resp = requests.get(f"{CATALOGUE_SERVICE_URL}/books/{book_id}", timeout=3, verify=VERIFY)
+        if resp.status_code != 200:
+            flash("Ce livre n'existe pas.")
+            return redirect(url_for("index"))
+        book = resp.json()
+    except requests.RequestException:
+        flash("Le service catalogue est indisponible pour le moment.")
+        return redirect(url_for("index"))
+    return render_template("livre.html", book=book)
+
+
+@app.route("/profil")
+def profil():
+    if "token" not in session:
+        flash("Connectez-vous pour voir votre profil.")
+        return redirect(url_for("login"))
+
+    try:
+        me_resp = requests.get(f"{AUTH_SERVICE_URL}/me", headers=auth_headers(), timeout=3, verify=VERIFY)
+        stats_resp = requests.get(f"{CATALOGUE_SERVICE_URL}/stats", headers=auth_headers(), timeout=3, verify=VERIFY)
+    except requests.RequestException:
+        flash("Service indisponible pour le moment.")
+        return redirect(url_for("index"))
+
+    if me_resp.status_code != 200:
+        flash("Session expirée, reconnectez-vous.")
+        session.clear()
+        return redirect(url_for("login"))
+
+    return render_template("profil.html", user=me_resp.json(), stats=stats_resp.json())
 
 
 @app.route("/register", methods=["GET", "POST"])

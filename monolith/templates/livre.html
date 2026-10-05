@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% from "_macros.html" import book_cover %}
+{% block title %}{{ book.title }} — Bibliothèque en ligne{% endblock %}
+{% block content %}
+    <a href="{{ url_for('index') }}" class="back-link">&larr; Retour au catalogue</a>
+
+    <div class="book-detail reveal">
+        <div class="book-detail-cover">
+            {{ book_cover(book) }}
+        </div>
+        <div class="book-detail-info">
+            <h2>{{ book.title }}</h2>
+            <p class="author">{{ book.author }}</p>
+
+            {% if book.available_copies > 0 %}
+                <span class="availability in-stock">{{ book.available_copies }} sur {{ book.total_copies }} disponible{{ 's' if book.available_copies > 1 else '' }}</span>
+            {% else %}
+                <span class="availability out-of-stock">Aucun exemplaire disponible</span>
+            {% endif %}
+
+            <p class="description">{{ book.description or "Pas de description disponible pour cet ouvrage." }}</p>
+
+            <dl class="book-meta">
+                <dt>ISBN</dt><dd>{{ book.isbn }}</dd>
+            </dl>
+
+            {% if session.get('user_id') and book.available_copies > 0 %}
+                <form method="POST" action="{{ url_for('borrow', book_id=book.id) }}">
+                    <button type="submit">Emprunter ce livre</button>
+                </form>
+            {% elif not session.get('user_id') and book.available_copies > 0 %}
+                <a href="{{ url_for('login') }}" class="btn">Se connecter pour emprunter</a>
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}

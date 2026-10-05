@@ -64,6 +64,44 @@ def list_books():
     return jsonify(books)
 
 
+@app.route("/books/<int:book_id>", methods=["GET"])
+def book_detail(book_id):
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("SELECT * FROM books WHERE id = %s", (book_id,))
+    book = cur.fetchone()
+    cur.close()
+    conn.close()
+    if not book:
+        return jsonify({"error": "Livre introuvable."}), 404
+    return jsonify(book)
+
+
+@app.route("/stats", methods=["GET"])
+def stats():
+    token = request.headers.get("Authorization", "").replace("Bearer ", "")
+    user = verify_token(token)
+    if not user:
+        return jsonify({"error": "Authentification requise."}), 401
+
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute(
+        """
+        SELECT
+            COUNT(*) AS total,
+            COUNT(*) FILTER (WHERE status = 'en_cours') AS en_cours,
+            COUNT(*) FILTER (WHERE status = 'rendu') AS rendus
+        FROM loans WHERE user_id = %s
+        """,
+        (user["user_id"],),
+    )
+    row = cur.fetchone()
+    cur.close()
+    conn.close()
+    return jsonify(row)
+
+
 @app.route("/borrow/<int:book_id>", methods=["POST"])
 def borrow(book_id):
     token = request.headers.get("Authorization", "").replace("Bearer ", "")

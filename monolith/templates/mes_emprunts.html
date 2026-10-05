@@ -16,7 +16,7 @@
                         <td>{{ 'En cours' if loan.status == 'en_cours' else 'Rendu' }}</td>
                         <td>
                             {% if loan.status == 'en_cours' %}
-                                <form method="POST" action="{{ url_for('return_book', loan_id=loan.id) }}">
+                                <form method="POST" action="{{ url_for('return_book', loan_id=loan.id) }}" class="return-form" data-book-title="{{ loan.title }}">
                                     <button type="submit">Rendre</button>
                                 </form>
                             {% endif %}

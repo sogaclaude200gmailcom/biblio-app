@@ -12,6 +12,7 @@ Lancement direct (sans Docker) :
 """
 
 import os
+import random
 from flask import Flask, render_template, request, redirect, url_for, session, flash
 import psycopg2
 import psycopg2.extras
@@ -41,7 +42,51 @@ def index():
     books = cur.fetchall()
     cur.close()
     conn.close()
-    return render_template("index.html", books=books)
+    featured = random.choice(books) if books else None
+    return render_template("index.html", books=books, featured=featured)
+
+
+@app.route("/livre/<int:book_id>")
+def book_detail(book_id):
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("SELECT * FROM books WHERE id = %s", (book_id,))
+    book = cur.fetchone()
+    cur.close()
+    conn.close()
+    if not book:
+        flash("Ce livre n'existe pas.")
+        return redirect(url_for("index"))
+    return render_template("livre.html", book=book)
+
+
+@app.route("/profil")
+def profil():
+    if "user_id" not in session:
+        flash("Connectez-vous pour voir votre profil.")
+        return redirect(url_for("login"))
+
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute(
+        "SELECT username, email, TO_CHAR(created_at, 'DD/MM/YYYY') AS member_since FROM users WHERE id = %s",
+        (session["user_id"],),
+    )
+    user = cur.fetchone()
+    cur.execute(
+        """
+        SELECT
+            COUNT(*) AS total,
+            COUNT(*) FILTER (WHERE status = 'en_cours') AS en_cours,
+            COUNT(*) FILTER (WHERE status = 'rendu') AS rendus
+        FROM loans WHERE user_id = %s
+        """,
+        (session["user_id"],),
+    )
+    stats = cur.fetchone()
+    cur.close()
+    conn.close()
+    return render_template("profil.html", user=user, stats=stats)
 
 
 @app.route("/register", methods=["GET", "POST"])

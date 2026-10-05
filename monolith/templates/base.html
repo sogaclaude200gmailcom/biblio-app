@@ -13,7 +13,7 @@
         <h1><a href="{{ url_for('index') }}">Bibliothèque</a></h1>
         <nav>
             {% if session.get('user_id') %}
-                <span>Bonjour, {{ session.get('username') }}</span>
+                <a href="{{ url_for('profil') }}">Bonjour, {{ session.get('username') }}</a>
                 <a href="{{ url_for('my_loans') }}">Mes emprunts</a>
                 <a href="{{ url_for('logout') }}">Déconnexion</a>
             {% else %}
@@ -23,10 +23,12 @@
         </nav>
     </header>
 
+    <div id="toast-container"></div>
+
     <main>
         {% with messages = get_flashed_messages() %}
             {% if messages %}
-                <ul class="flash">
+                <ul class="flash" id="flash-source" hidden>
                     {% for message in messages %}
                         <li>{{ message }}</li>
                     {% endfor %}
@@ -40,5 +42,17 @@
     <footer>
         <p>Mémoire — Migration vers les microservices conteneurisés (DRSI / Université de Lomé)</p>
     </footer>
+
+    <div id="confirm-modal" class="modal-backdrop" hidden>
+        <div class="modal-dialog">
+            <p id="confirm-modal-text">Confirmer cette action ?</p>
+            <div class="modal-actions">
+                <button type="button" class="btn-secondary" id="confirm-modal-cancel">Annuler</button>
+                <button type="button" class="btn-danger" id="confirm-modal-confirm">Confirmer</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='app.js') }}"></script>
 </body>
 </html>
